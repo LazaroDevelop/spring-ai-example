@@ -4,6 +4,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import net.developer.space.chat_assistance_ai_rag.config.SystemPromptConfig;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,21 +23,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @ResponseBody
 public class ChatController {
-
+    
     private final ChatClient ai;
+    private final SystemPromptConfig systemPromptConfig;
 
-    public ChatController(ChatClient ai) {
+    public ChatController(ChatClient ai, SystemPromptConfig systemPromptConfig) {
         this.ai = ai;
+        this.systemPromptConfig = systemPromptConfig;
     }
 
     /**
      * User questin entrypoint
      */
     @GetMapping("/{user}/assitant")
-    public String inquire(@PathVariable String user, @RequestParam String question) {        
+    public String inquire(@PathVariable String user, @RequestParam String question) {
 
         return ai
                 .prompt()
+                .system(this.systemPromptConfig.getPrompt())
                 .user(question)
                 .advisors(ai -> ai.param(ChatMemory.CONVERSATION_ID, user))
                 .call()
