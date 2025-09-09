@@ -7,6 +7,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import net.developer.space.chat_assistance_ai_rag.config.ToolConfig;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,9 +28,11 @@ public class ChatController {
     
     private final ChatClient ai;
     private QuestionAnswerAdvisor advisor;
+    private final ToolConfig toolConfig;
 
-    public ChatController(ChatClient ai, VectorStore vectorStore) {
+    public ChatController(ChatClient ai, VectorStore vectorStore, ToolConfig toolConfig) {
         this.ai = ai;
+        this.toolConfig = toolConfig;
         this.advisor = new QuestionAnswerAdvisor(vectorStore);
     }
 
@@ -41,6 +45,7 @@ public class ChatController {
         return ai
                 .prompt()
                 .user(question)
+                .tools(toolConfig)
                 .advisors(ai -> ai.param(ChatMemory.CONVERSATION_ID, user))
                 .advisors(advisor)
                 .call()
