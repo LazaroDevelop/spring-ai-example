@@ -1,13 +1,19 @@
 package net.developer.space.chat_assistance_ai_rag.config;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import net.developer.space.chat_assistance_ai_rag.repository.AnimalsRepository;
 
 /**
  * Configuration class for setting up the ChatClient with necessary properties.
@@ -28,8 +34,32 @@ public class ChatClientConfig {
      * @return an instance of the {@link ChatClient} class with the currents configurations
      */
     @Bean
-    ChatClient chatClient(ChatClient.Builder builder, PromptChatMemoryAdvisor advisor) {
+    ChatClient chatClient(
+        ChatClient.Builder builder, 
+        PromptChatMemoryAdvisor advisor, 
+        SystemPromptConfig promptConfig,
+        VectorStore vectorStore,
+        AnimalsRepository repository
+        ) {
+
+            repository.findAll().forEach(animal -> {
+                var document = new Document("id: %s, name: %s, species: %s, habitat: %s, diet: %s, lifespan: %d, weight: %.2f, description: %s"
+                    .formatted(
+                        animal.id(),
+                        animal.name(),
+                        animal.species(),
+                        animal.habitat(),
+                        animal.diet(),
+                        animal.lifespan(),
+                        animal.weight(),
+                        animal.description()
+                    ));
+
+                    vectorStore.add(List.of(document));
+            });
+
         return builder
+            .defaultSystem(promptConfig.getPrompt())
             .defaultAdvisors(advisor)
             .build();
     }

@@ -13,9 +13,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "application.system")
 public class SystemPromptConfig {
-    private String prompt = "You are a helpful assistant that helps people find information and remenber ages and names.";
+    private String prompt;
 
     public String getPrompt() {
         return prompt;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
     }
 }

@@ -1,11 +1,11 @@
 package net.developer.space.chat_assistance_ai_rag.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import net.developer.space.chat_assistance_ai_rag.config.SystemPromptConfig;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ChatController {
     
     private final ChatClient ai;
-    private final SystemPromptConfig systemPromptConfig;
+    private QuestionAnswerAdvisor advisor;
 
-    public ChatController(ChatClient ai, SystemPromptConfig systemPromptConfig) {
+    public ChatController(ChatClient ai, VectorStore vectorStore) {
         this.ai = ai;
-        this.systemPromptConfig = systemPromptConfig;
+        this.advisor = new QuestionAnswerAdvisor(vectorStore);
     }
 
     /**
@@ -40,9 +40,9 @@ public class ChatController {
 
         return ai
                 .prompt()
-                .system(this.systemPromptConfig.getPrompt())
                 .user(question)
                 .advisors(ai -> ai.param(ChatMemory.CONVERSATION_ID, user))
+                .advisors(advisor)
                 .call()
                 .content();
     }
